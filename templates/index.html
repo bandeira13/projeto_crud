@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Tarefas</title>
+    <style>
+        body { font-family: sans-serif; margin: 40px; background: #f4f4f4; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h1, h2 { text-align: center; }
+        form { display: flex; margin-bottom: 20px; }
+        input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: 10px 15px; border: none; background: #007bff; color: white; border-radius: 4px; cursor: pointer; margin-left: 10px; }
+        button:hover { background: #0056b3; }
+        ul { list-style: none; padding: 0; }
+        li { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+        li.concluida { text-decoration: line-through; color: #888; }
+        .botoes-tarefa button { background: #dc3545; font-size: 12px; padding: 5px 10px; }
+        .botoes-tarefa button.concluir { background: #28a745; margin-left: 0; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Minha Lista de Tarefas</h1>
+
+        <form id="form-adicionar">
+            <input type="text" id="input-tarefa" placeholder="O que precisa ser feito?" required>
+            <button type="submit">Adicionar</button>
+        </form>
+
+        <h2>Tarefas</h2>
+        <ul id="lista-tarefas">
+            </ul>
+    </div>
+
+    <script>
+        
+        const API_URL = "/tarefas";
+
+        
+        const form = document.getElementById('form-adicionar');
+        const inputTarefa = document.getElementById('input-tarefa');
+        const listaTarefas = document.getElementById('lista-tarefas');
+
+        
+        async function carregarTarefas() {
+            
+            const response = await fetch(API_URL);
+            const tarefas = await response.json();
+            
+            
+            listaTarefas.innerHTML = ''; 
+            
+            tarefas.forEach(tarefa => {
+                const li = document.createElement('li');
+                
+                li.className = tarefa.concluida ? 'concluida' : '';
+                
+                li.innerHTML = `
+                    <span>${tarefa.titulo}</span>
+                    <div class="botoes-tarefa">
+                        ${!tarefa.concluida ? `<button class="concluir" onclick="concluirTarefa(${tarefa.id})">Concluir</button>` : ''}
+                        <button onclick="apagarTarefa(${tarefa.id})">Apagar</button>
+                    </div>
+                `;
+                listaTarefas.appendChild(li);
+            });
+        }
+
+        
+        form.onsubmit = async (e) => {
+            e.preventDefault(); 
+            const titulo = inputTarefa.value;
+            if (!titulo) return;
+
+            
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ titulo: titulo })
+            });
+
+            inputTarefa.value = ''; 
+            carregarTarefas(); 
+        };
+
+       
+        async function concluirTarefa(id) {
+            
+            await fetch(`${API_URL}/${id}`, {
+                method: 'PUT'
+            });
+            carregarTarefas(); 
+        }
+
+        
+        async function apagarTarefa(id) {
+            
+            await fetch(`${API_URL}/${id}`, {
+                method: 'DELETE'
+            });
+            carregarTarefas(); 
+        }
+
+        
+        carregarTarefas();
+    </script>
+
+</body>
+</html>

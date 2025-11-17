@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify , render_template
 from database import get_connection
 import database
 
@@ -6,20 +6,9 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    conn = database.get_connection() 
-    
-    tarefas_raw = conn.execute('SELECT * FROM tarefas').fetchall()
-    conn.close()
-    
-    tarefas = []
-    for row in tarefas_raw:
-        tarefas.append(dict(row)) 
-    
-    
-    return {"tarefas": tarefas}
+     
+     return render_template("index.html")
 
-if __name__ == '__main__':
-    app.run(debug=True)
 
 @app.post("/tarefas")
 def criar_tarefa():
