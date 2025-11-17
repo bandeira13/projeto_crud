@@ -1,8 +1,25 @@
 from flask import Flask, request, jsonify
-from database import get_connection, init_db
+from database import get_connection
+import database
 
-app = Flask(_name_)
-init_db()
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    conn = database.get_connection() 
+    
+    tarefas_raw = conn.execute('SELECT * FROM tarefas').fetchall()
+    conn.close()
+    
+    tarefas = []
+    for row in tarefas_raw:
+        tarefas.append(dict(row)) 
+    
+    
+    return {"tarefas": tarefas}
+
+if __name__ == '__main__':
+    app.run(debug=True)
 
 @app.post("/tarefas")
 def criar_tarefa():
@@ -32,4 +49,5 @@ def apagar_tarefa(id):
     conn.commit()
     return jsonify({"message": "Tarefa removida"})
 
-app.run(debug=True)
+if __name__ == '__main__':
+    app.run(debug=True)
